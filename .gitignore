@@ -1,0 +1,9 @@
+.DS_Store
+build/
+DerivedData/
+*.xcuserdata/
+*.xcuserstate
+
+# Legacy snapshots kept outside the formal repository history.
+outputs/
+work/
