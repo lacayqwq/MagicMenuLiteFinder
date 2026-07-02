@@ -9,8 +9,8 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     private let scrollView = NSScrollView()
     private let contentView = FlippedDocumentView()
     private let stackView = NSStackView()
-    private let menuRowsStack = NSStackView()
-    private let newFileRowsStack = NSStackView()
+    private let menuRowsStack = SortableRowsStackView()
+    private let newFileRowsStack = SortableRowsStackView()
     private var configuration = MenuConfigurationStore.load()
 
     init() {
@@ -60,12 +60,12 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         stackView.addArrangedSubview(headerView())
         stackView.addArrangedSubview(cardView(
             title: "一级菜单",
-            subtitle: "控制 Finder 右键菜单中直接出现的功能和顺序。",
+            subtitle: "控制 Finder 右键菜单中直接出现的功能；拖动左侧把手调整顺序。",
             rowsStack: menuRowsStack
         ))
         stackView.addArrangedSubview(cardView(
             title: "新建文件",
-            subtitle: "控制“新建文件”子菜单中出现的文件类型和顺序。",
+            subtitle: "控制“新建文件”子菜单中出现的文件类型；拖动左侧把手调整顺序。",
             rowsStack: newFileRowsStack
         ))
         stackView.addArrangedSubview(footerView())
@@ -245,6 +245,11 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         titles: [String: String],
         subtitles: [String: String]
     ) {
+        if let sortableStack = stackView as? SortableRowsStackView {
+            sortableStack.sectionID = section.rawValue
+            sortableStack.dragDelegate = self
+        }
+
         stackView.arrangedSubviews.forEach { view in
             stackView.removeArrangedSubview(view)
             view.removeFromSuperview()
@@ -270,8 +275,13 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func rowView(section: Section, index: Int, item: MenuConfigItem, title: String, subtitle: String) -> NSView {
-        let row = NSView()
+        let row = DraggableRowView(sectionID: section.rawValue, index: index)
         row.translatesAutoresizingMaskIntoConstraints = false
+
+        let dragHandleView = NSImageView()
+        dragHandleView.image = NSImage(systemSymbolName: "line.3.horizontal", accessibilityDescription: "拖动排序")
+        dragHandleView.contentTintColor = .tertiaryLabelColor
+        dragHandleView.translatesAutoresizingMaskIntoConstraints = false
 
         let iconView = NSImageView()
         iconView.image = icon(for: item.id)
@@ -296,21 +306,23 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         toggle.identifier = NSUserInterfaceItemIdentifier(section.rawValue)
         toggle.translatesAutoresizingMaskIntoConstraints = false
 
-        let upButton = iconButton(symbol: "chevron.up", identifier: "\(section.rawValue)-up", tag: index, enabled: index > 0)
-        let downButton = iconButton(symbol: "chevron.down", identifier: "\(section.rawValue)-down", tag: index, enabled: index < rowCount(for: section) - 1)
-
+        row.addSubview(dragHandleView)
         row.addSubview(iconView)
         row.addSubview(titleLabel)
         row.addSubview(subtitleLabel)
         row.addSubview(toggle)
-        row.addSubview(upButton)
-        row.addSubview(downButton)
+        row.dragHandleView = dragHandleView
 
         NSLayoutConstraint.activate([
             row.widthAnchor.constraint(greaterThanOrEqualToConstant: 600),
             row.heightAnchor.constraint(equalToConstant: 52),
 
-            iconView.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 18),
+            dragHandleView.leadingAnchor.constraint(equalTo: row.leadingAnchor, constant: 16),
+            dragHandleView.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            dragHandleView.widthAnchor.constraint(equalToConstant: 18),
+            dragHandleView.heightAnchor.constraint(equalToConstant: 18),
+
+            iconView.leadingAnchor.constraint(equalTo: dragHandleView.trailingAnchor, constant: 13),
             iconView.centerYAnchor.constraint(equalTo: row.centerYAnchor),
             iconView.widthAnchor.constraint(equalToConstant: 22),
             iconView.heightAnchor.constraint(equalToConstant: 22),
@@ -323,12 +335,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: toggle.leadingAnchor, constant: -18),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 3),
 
-            downButton.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -16),
-            downButton.centerYAnchor.constraint(equalTo: row.centerYAnchor),
-            upButton.trailingAnchor.constraint(equalTo: downButton.leadingAnchor, constant: -6),
-            upButton.centerYAnchor.constraint(equalTo: row.centerYAnchor),
-
-            toggle.trailingAnchor.constraint(equalTo: upButton.leadingAnchor, constant: -14),
+            toggle.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -18),
             toggle.centerYAnchor.constraint(equalTo: row.centerYAnchor)
         ])
 
@@ -344,24 +351,6 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             separator.heightAnchor.constraint(equalToConstant: 1)
         ])
         return separator
-    }
-
-    private func iconButton(symbol: String, identifier: String, tag: Int, enabled: Bool) -> NSButton {
-        let button = NSButton()
-        button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
-        button.bezelStyle = .rounded
-        button.isBordered = true
-        button.target = self
-        button.action = #selector(moveItem(_:))
-        button.identifier = NSUserInterfaceItemIdentifier(identifier)
-        button.tag = tag
-        button.isEnabled = enabled
-        button.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            button.widthAnchor.constraint(equalToConstant: 30),
-            button.heightAnchor.constraint(equalToConstant: 26)
-        ])
-        return button
     }
 
     private func icon(for id: String) -> NSImage? {
@@ -402,35 +391,6 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         saveAndRebuild()
     }
 
-    @objc private func moveItem(_ sender: NSButton) {
-        guard let identifier = sender.identifier?.rawValue else { return }
-        let isUp = identifier.hasSuffix("-up")
-        let section: Section = identifier.hasPrefix(Section.menu.rawValue) ? .menu : .newFile
-        let offset = isUp ? -1 : 1
-
-        switch section {
-        case .menu:
-            moveItem(at: sender.tag, offset: offset, in: &configuration.menuItems)
-        case .newFile:
-            moveItem(at: sender.tag, offset: offset, in: &configuration.newFileItems)
-        }
-    }
-
-    private func moveItem(at index: Int, offset: Int, in items: inout [MenuConfigItem]) {
-        guard items.indices.contains(index) else { return }
-        let targetIndex = index + offset
-        guard items.indices.contains(targetIndex) else { return }
-        items.swapAt(index, targetIndex)
-        saveAndRebuild()
-    }
-
-    private func rowCount(for section: Section) -> Int {
-        switch section {
-        case .menu: return configuration.menuItems.count
-        case .newFile: return configuration.newFileItems.count
-        }
-    }
-
     @objc private func resetDefaults() {
         configuration = .defaultConfiguration
         saveAndRebuild()
@@ -456,6 +416,183 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning
         alert.runModal()
+    }
+}
+
+extension PreferencesWindowController: SortableRowsStackViewDelegate {
+    fileprivate func rowsStackView(_ stackView: SortableRowsStackView, moveItemFrom sourceIndex: Int, to proposedDropIndex: Int, sectionID: String) {
+        guard let section = Section(rawValue: sectionID) else { return }
+
+        switch section {
+        case .menu:
+            guard let reorderedItems = reorderedItems(configuration.menuItems, from: sourceIndex, to: proposedDropIndex) else { return }
+            configuration.menuItems = reorderedItems
+        case .newFile:
+            guard let reorderedItems = reorderedItems(configuration.newFileItems, from: sourceIndex, to: proposedDropIndex) else { return }
+            configuration.newFileItems = reorderedItems
+        }
+
+        saveAndRebuild()
+    }
+
+    private func reorderedItems(_ items: [MenuConfigItem], from sourceIndex: Int, to proposedDropIndex: Int) -> [MenuConfigItem]? {
+        guard items.indices.contains(sourceIndex) else { return nil }
+        var destinationIndex = min(max(proposedDropIndex, 0), items.count)
+        if destinationIndex > sourceIndex {
+            destinationIndex -= 1
+        }
+        guard destinationIndex != sourceIndex else { return nil }
+
+        var reorderedItems = items
+        let movedItem = reorderedItems.remove(at: sourceIndex)
+        reorderedItems.insert(movedItem, at: destinationIndex)
+        return reorderedItems
+    }
+}
+
+private protocol SortableRowsStackViewDelegate: AnyObject {
+    func rowsStackView(_ stackView: SortableRowsStackView, moveItemFrom sourceIndex: Int, to proposedDropIndex: Int, sectionID: String)
+}
+
+private extension NSPasteboard.PasteboardType {
+    static let magicMenuLiteRow = NSPasteboard.PasteboardType("dev.codex.MagicMenuLiteFinder.row")
+}
+
+private final class DraggableRowView: NSView, NSDraggingSource {
+    private let sectionID: String
+    private let index: Int
+    weak var dragHandleView: NSView?
+    private var dragStartPoint: NSPoint?
+
+    init(sectionID: String, index: Int) {
+        self.sectionID = sectionID
+        self.index = index
+        super.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        dragStartPoint = convert(event.locationInWindow, from: nil)
+        super.mouseDown(with: event)
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        let hitView = super.hitTest(point)
+        if let dragHandleView, hitView === dragHandleView {
+            return self
+        }
+        return hitView
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard
+            let dragStartPoint,
+            distance(from: dragStartPoint, to: convert(event.locationInWindow, from: nil)) > 4
+        else {
+            super.mouseDragged(with: event)
+            return
+        }
+
+        self.dragStartPoint = nil
+        let pasteboardItem = NSPasteboardItem()
+        pasteboardItem.setString("\(sectionID)|\(index)", forType: .magicMenuLiteRow)
+
+        let draggingItem = NSDraggingItem(pasteboardWriter: pasteboardItem)
+        draggingItem.setDraggingFrame(bounds, contents: snapshotImage())
+        beginDraggingSession(with: [draggingItem], event: event, source: self)
+    }
+
+    func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+        .move
+    }
+
+    private func snapshotImage() -> NSImage {
+        guard let bitmapRepresentation = bitmapImageRepForCachingDisplay(in: bounds) else {
+            return NSImage(size: bounds.size)
+        }
+
+        cacheDisplay(in: bounds, to: bitmapRepresentation)
+        let image = NSImage(size: bounds.size)
+        image.addRepresentation(bitmapRepresentation)
+        return image
+    }
+
+    private func distance(from start: NSPoint, to end: NSPoint) -> CGFloat {
+        let dx = start.x - end.x
+        let dy = start.y - end.y
+        return sqrt(dx * dx + dy * dy)
+    }
+}
+
+private final class SortableRowsStackView: NSStackView {
+    weak var dragDelegate: SortableRowsStackViewDelegate?
+    var sectionID = ""
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        registerForDraggedTypes([.magicMenuLiteRow])
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        canAccept(sender) ? .move : []
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        canAccept(sender) ? .move : []
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        guard
+            let source = sourceInfo(from: sender),
+            source.sectionID == sectionID
+        else {
+            return false
+        }
+
+        dragDelegate?.rowsStackView(self, moveItemFrom: source.index, to: dropIndex(for: sender), sectionID: sectionID)
+        return true
+    }
+
+    private func canAccept(_ sender: NSDraggingInfo) -> Bool {
+        guard let source = sourceInfo(from: sender) else { return false }
+        return source.sectionID == sectionID
+    }
+
+    private func sourceInfo(from sender: NSDraggingInfo) -> (sectionID: String, index: Int)? {
+        guard
+            let payload = sender.draggingPasteboard.string(forType: .magicMenuLiteRow)
+        else {
+            return nil
+        }
+
+        let parts = payload.split(separator: "|", maxSplits: 1).map(String.init)
+        guard parts.count == 2, let index = Int(parts[1]) else { return nil }
+        return (parts[0], index)
+    }
+
+    private func dropIndex(for sender: NSDraggingInfo) -> Int {
+        let location = convert(sender.draggingLocation, from: nil)
+        let rows = arrangedSubviews.compactMap { $0 as? DraggableRowView }
+        guard !rows.isEmpty else { return 0 }
+
+        for (index, row) in rows.enumerated() {
+            if isFlipped {
+                if location.y < row.frame.midY {
+                    return index
+                }
+            } else if location.y > row.frame.midY {
+                return index
+            }
+        }
+
+        return rows.count
     }
 }
 
