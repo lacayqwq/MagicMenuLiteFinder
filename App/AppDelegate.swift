@@ -126,10 +126,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         let queryItems = components?.queryItems ?? []
-        let query = Dictionary(uniqueKeysWithValues: queryItems.compactMap { item -> (String, String)? in
-            guard let value = item.value else { return nil }
-            return (item.name, value)
-        })
+        let query = queryItems.reduce(into: [String: String]()) { result, item in
+            guard let value = item.value else { return }
+            result[item.name] = value
+        }
 
         guard
             let kindValue = query["kind"],
@@ -205,7 +205,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func handle(request: HostRequest) throws {
-        guard let action = HostAction(rawValue: request.action ?? HostAction.newFile.rawValue) else {
+        guard let actionValue = request.action, let action = HostAction(rawValue: actionValue) else {
             throw userFacingError("未知请求：\(request.action ?? "empty")")
         }
 
@@ -322,10 +322,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             throw CocoaError(.fileWriteNoPermission)
         }
 
-        let fileURL = uniqueFileURL(in: directory, preferredName: kind.fileName)
-        guard FileManager.default.createFile(atPath: fileURL.path, contents: kind.template) else {
-            throw CocoaError(.fileWriteUnknown)
-        }
+        let fileURL = try writeNewFileWithoutOverwriting(kind: kind, in: directory)
 
         if kind.isExecutable {
             try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: fileURL.path)
@@ -334,26 +331,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return fileURL
     }
 
-    private func uniqueFileURL(in directory: URL, preferredName: String) -> URL {
-        let fileManager = FileManager.default
-        let baseURL = directory.appendingPathComponent(preferredName)
+    private func writeNewFileWithoutOverwriting(kind: NewFileKind, in directory: URL) throws -> URL {
+        let preferredURL = directory.appendingPathComponent(kind.fileName)
+        let name = preferredURL.deletingPathExtension().lastPathComponent
+        let ext = preferredURL.pathExtension
 
-        if !fileManager.fileExists(atPath: baseURL.path) {
-            return baseURL
-        }
+        for index in 1..<10_000 {
+            let candidateName: String
+            if index == 1 {
+                candidateName = kind.fileName
+            } else {
+                candidateName = ext.isEmpty ? "\(name) \(index)" : "\(name) \(index).\(ext)"
+            }
 
-        let name = baseURL.deletingPathExtension().lastPathComponent
-        let ext = baseURL.pathExtension
-
-        for index in 2..<10_000 {
-            let candidateName = ext.isEmpty ? "\(name) \(index)" : "\(name) \(index).\(ext)"
             let candidate = directory.appendingPathComponent(candidateName)
-            if !fileManager.fileExists(atPath: candidate.path) {
+            do {
+                try kind.template.write(to: candidate, options: .withoutOverwriting)
                 return candidate
+            } catch let error as CocoaError where error.code == .fileWriteFileExists {
+                continue
             }
         }
 
-        return directory.appendingPathComponent(UUID().uuidString).appendingPathExtension(ext)
+        let fallback = directory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(ext)
+        try kind.template.write(to: fallback, options: .withoutOverwriting)
+        return fallback
     }
 
     private func copyStatus(_ text: String) {

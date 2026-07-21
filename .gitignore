@@ -7,3 +7,4 @@ DerivedData/
 # Legacy snapshots kept outside the formal repository history.
 outputs/
 work/
+dist/

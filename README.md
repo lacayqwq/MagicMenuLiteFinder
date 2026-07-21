@@ -2,9 +2,9 @@
 
 这是一个 Finder Sync Extension 版本，目标是把常用功能放到 Finder 右键菜单里，而不是放在“服务/快速操作”二级菜单中。
 
-## 正式版说明
+## v1.1.0 正式版说明
 
-这是当前正式版。新建文件后会先让 Finder 选中新文件，再模拟按下 `Return` 进入重命名。
+这是当前正式版。v1.1.0 重新设计了 App 图标，并改用原子“不覆盖”写入来新建文件，即使出现并发操作也不会覆盖已有同名文件。新建文件后会先让 Finder 选中新文件，再模拟按下 `Return` 进入重命名。
 
 这个行为需要 macOS 辅助功能权限。第一次使用时如果没有进入重命名，打开“系统设置 > 隐私与安全性 > 辅助功能”，允许 `MagicMenuLiteFinder`，然后再试一次。安装脚本会给 App 加一个稳定的本地签名要求，减少重装后辅助功能授权失效的情况。
 
@@ -48,8 +48,8 @@
 Xcode 安装完成后，在终端运行：
 
 ```sh
-cd /Users/linchengyu/Documents/Codex/2026-07-01/ssllix67-iboysoft-magicmenu-https-github-com
-chmod +x build-and-install.sh
+git clone https://github.com/lacayqwq/MagicMenuLiteFinder.git
+cd MagicMenuLiteFinder
 ./build-and-install.sh
 ```
 
@@ -80,3 +80,11 @@ Finder Sync Extension 必须保持沙盒，否则 macOS 会拒绝加载。为了
 新建文件时，Finder 扩展会短暂唤起主 App 创建文件；创建完成后主 App 会自动退出，不需要常驻后台。
 
 如果第一次在 `桌面`、`文稿`、`下载` 或外接/网络磁盘里新建文件，macOS 可能会弹出访问权限提示；允许后即可继续使用。失败时主 App 会弹窗显示具体错误，并把错误文本放入剪贴板。
+
+## 打包 Release
+
+```sh
+./package-release.sh
+```
+
+脚本会在 `dist/` 生成经 ad-hoc 签名的 zip 包和 SHA-256 校验文件。这个开源分发包没有 Apple Developer ID 公证；首次打开时可能需要在 Finder 中右键 App 并选择“打开”。
