@@ -6,7 +6,26 @@
 
 这是当前正式版。v1.1.0 重新设计了 App 图标，并改用原子“不覆盖”写入来新建文件，即使出现并发操作也不会覆盖已有同名文件。新建文件后会先让 Finder 选中新文件，再模拟按下 `Return` 进入重命名。
 
-这个行为需要 macOS 辅助功能权限。第一次使用时如果没有进入重命名，打开“系统设置 > 隐私与安全性 > 辅助功能”，允许 `MagicMenuLiteFinder`，然后再试一次。安装脚本会给 App 加一个稳定的本地签名要求，减少重装后辅助功能授权失效的情况。
+这个行为需要 macOS 辅助功能权限。第一次使用时如果没有进入重命名，打开“系统设置 > 隐私与安全性 > 辅助功能”，允许 `MagicMenuLiteFinder`，然后再试一次。从源码使用 `build-and-install.sh` 安装时，脚本会给 App 加一个稳定的本地签名要求，减少重装后辅助功能授权失效的情况。
+
+## 下载安装正式版（推荐）
+
+下载 Release 安装不需要 Xcode。当前版本支持 macOS 13 及以上系统，同时支持 Apple Silicon 和 Intel Mac。
+
+1. 打开 [GitHub Releases](https://github.com/lacayqwq/MagicMenuLiteFinder/releases/latest)。
+2. 下载 `MagicMenuLiteFinder-v1.1.0-macos.zip` 并解压。
+3. 将 `MagicMenuLiteFinder.app` 拖入 `/Applications`。
+4. 首次打开时，在 Finder 中右键 `MagicMenuLiteFinder.app`，选择“打开”，再确认打开。
+5. 打开“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu Lite`。
+6. 重新打开 Finder 窗口，即可在右键菜单中使用。如果菜单没有出现，可在终端运行 `killall Finder`。
+
+Release 附件使用 ad-hoc 签名，尚未使用 Apple Developer ID 公证。下载 zip 和同名 `.sha256` 文件后，可在所在目录验证：
+
+```sh
+shasum -a 256 -c MagicMenuLiteFinder-v1.1.0-macos.sha256
+```
+
+如果希望新建文件后自动进入重命名，还需在“系统设置 > 隐私与安全性 > 辅助功能”中允许 `MagicMenuLiteFinder`。不授予该权限不影响其他右键菜单功能。
 
 ## 功能
 
@@ -39,11 +58,9 @@
 
 右键文件或文件夹时，`复制路径` 会复制选中项目路径；`复制文件名` 会复制选中项目名称；`用 VS Code 打开` 会打开选中项目；`用 Codex 打开` 和 `用 Codex CLI 打开` 会打开选中项目所在文件夹；`用 iTerm2 打开` 会打开选中项目所在文件夹；`新建文件` 会创建在选中项目所在的文件夹里。若同名文件已存在，会自动使用 `Untitled 2.ext` 这样的名字，避免覆盖。
 
-## 安装 Xcode
+## 从源码构建和安装（开发者）
 
 如果机器上还没有 Xcode，请先在 App Store 里安装。安装完成后第一次打开 Xcode，按提示同意协议并安装额外组件。
-
-## 构建和安装
 
 Xcode 安装完成后，在终端运行：
 
@@ -61,15 +78,7 @@ cd MagicMenuLiteFinder
 4. 在 `Signing & Capabilities` 里选择你的 Apple ID Team
 5. 再运行 `./build-and-install.sh`
 
-## 启用扩展
-
-构建安装后：
-
-1. 打开 `/Applications/MagicMenuLiteFinder.app`
-2. 点击“尝试启用扩展”
-3. 打开“系统设置 > 登录项与扩展 > Finder 扩展”
-4. 启用 `MagicMenu Lite`
-5. 运行 `killall Finder` 或重新打开 Finder
+构建安装后，按上文“下载安装正式版”中的方式启用 Finder 扩展和辅助功能权限。
 
 ## 说明
 
