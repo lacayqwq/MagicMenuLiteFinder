@@ -1,6 +1,10 @@
 # MagicMenu Lite Finder
 
 <p align="center">
+  <strong>简体中文</strong> · <a href="README_EN.md">English</a>
+</p>
+
+<p align="center">
   <img src="App/Resources/MagicMenuLiteFinder-icon-preview.png" width="128" alt="MagicMenu Lite Finder 图标">
 </p>
 
