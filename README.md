@@ -21,10 +21,11 @@
 
 支持 macOS 13 及以上系统，适用于 Apple Silicon 和 Intel Mac。
 
-1. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenuLiteFinder-v1.1.1-macos.zip`。
-2. 解压后将 `MagicMenuLiteFinder.app` 移到“应用程序”文件夹。
-3. 首次启动时，右键 App 并选择“打开”。
-4. 前往“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu`。
+1. 如果安装过旧版，请先退出并删除“应用程序”中的 `MagicMenuLiteFinder.app`，避免系统保留重复项。
+2. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenu-v1.1.2-macos.zip`。
+3. 解压后将 `MagicMenu.app` 移到“应用程序”文件夹。
+4. 首次启动时，右键 App 并选择“打开”。
+5. 前往“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu`。
 
 > Release 版本已签名，但尚未经过 Apple 公证，因此首次启动需要使用右键“打开”。
 

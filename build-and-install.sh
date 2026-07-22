@@ -5,10 +5,11 @@ ROOT_DIR="${0:A:h}"
 PROJECT="$ROOT_DIR/MagicMenuLiteFinder.xcodeproj"
 CONFIGURATION="${CONFIGURATION:-Release}"
 DERIVED_DATA="$ROOT_DIR/build/DerivedData"
-APP_NAME="MagicMenuLiteFinder.app"
+APP_NAME="MagicMenu.app"
 APP_PATH="$DERIVED_DATA/Build/Products/$CONFIGURATION/$APP_NAME"
 INSTALL_DIR="${INSTALL_DIR:-/Applications}"
 INSTALLED_APP="$INSTALL_DIR/$APP_NAME"
+LEGACY_INSTALLED_APP="$INSTALL_DIR/MagicMenuLiteFinder.app"
 EXTENSION_ID="dev.codex.MagicMenuLiteFinder.FinderExtension"
 
 if [[ ! -d /Applications/Xcode.app ]]; then
@@ -30,6 +31,10 @@ xcodebuild \
 
 mkdir -p "$INSTALL_DIR"
 rm -rf "$INSTALLED_APP"
+if [[ -d "$LEGACY_INSTALLED_APP" ]]; then
+  /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister -u "$LEGACY_INSTALLED_APP" >/dev/null 2>&1 || true
+  rm -rf "$LEGACY_INSTALLED_APP"
+fi
 cp -R "$APP_PATH" "$INSTALLED_APP"
 
 codesign --force --sign - --options runtime --preserve-metadata=identifier,entitlements --requirements '=designated => identifier "dev.codex.MagicMenuLiteFinder.FinderExtension"' "$INSTALLED_APP/Contents/PlugIns/MagicMenuLiteFinderExtension.appex"

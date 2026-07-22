@@ -380,7 +380,11 @@ final class FinderSync: FIFinderSync {
             deliverImmediately: true
         )
 
-        NSWorkspace.shared.open(URL(fileURLWithPath: "/Applications/MagicMenuLiteFinder.app", isDirectory: true))
+        guard let hostURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "dev.codex.MagicMenuLiteFinder") else {
+            copyStatus("MagicMenu：找不到已安装的 App")
+            return
+        }
+        NSWorkspace.shared.open(hostURL)
     }
 
     private func writeRequest(action: HostAction, kind: NewFileKind? = nil, directory: URL? = nil, paths: [URL]? = nil) throws {

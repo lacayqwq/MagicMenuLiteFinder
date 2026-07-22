@@ -21,10 +21,11 @@ Adds frequently used actions such as copying paths, opening developer tools, and
 
 Requires macOS 13 or later. Supports both Apple Silicon and Intel Macs.
 
-1. Go to [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest) and download `MagicMenuLiteFinder-v1.1.1-macos.zip`.
-2. Unzip the archive and move `MagicMenuLiteFinder.app` to the Applications folder.
-3. On first launch, right-click the app and choose **Open**.
-4. Go to **System Settings > General > Login Items & Extensions > Finder Extensions** and enable `MagicMenu`.
+1. If an older version is installed, quit it and remove `MagicMenuLiteFinder.app` from Applications to prevent duplicate entries.
+2. Go to [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest) and download `MagicMenu-v1.1.2-macos.zip`.
+3. Unzip the archive and move `MagicMenu.app` to the Applications folder.
+4. On first launch, right-click the app and choose **Open**.
+5. Go to **System Settings > General > Login Items & Extensions > Finder Extensions** and enable `MagicMenu`.
 
 > The release uses ad hoc code signing and is not notarized by Apple, so the first launch must use the right-click **Open** action.
 

@@ -51,7 +51,7 @@
 		100000000000000000000022 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		100000000000000000000023 /* FinderExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FinderExtension.entitlements; sourceTree = "<group>"; };
 		100000000000000000000031 /* FinderSync.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FinderSync.framework; path = System/Library/Frameworks/FinderSync.framework; sourceTree = SDKROOT; };
-		100000000000000000000040 /* MagicMenuLiteFinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MagicMenuLiteFinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000040 /* MagicMenu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MagicMenu.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000041 /* MagicMenuLiteFinderExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MagicMenuLiteFinderExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -118,7 +118,7 @@
 		100000000000000000000055 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				100000000000000000000040 /* MagicMenuLiteFinder.app */,
+				100000000000000000000040 /* MagicMenu.app */,
 				100000000000000000000041 /* MagicMenuLiteFinderExtension.appex */,
 			);
 			name = Products;
@@ -142,8 +142,8 @@
 				100000000000000000000007 /* PBXTargetDependency */,
 			);
 			name = MagicMenuLiteFinder;
-			productName = MagicMenuLiteFinder;
-			productReference = 100000000000000000000040 /* MagicMenuLiteFinder.app */;
+			productName = MagicMenu;
+			productReference = 100000000000000000000040 /* MagicMenu.app */;
 			productType = "com.apple.product-type.application";
 		};
 		100000000000000000000102 /* MagicMenuLiteFinderExtension */ = {
@@ -365,9 +365,9 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder;
-				PRODUCT_NAME = MagicMenuLiteFinder;
+				PRODUCT_NAME = MagicMenu;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -384,9 +384,9 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder;
-				PRODUCT_NAME = MagicMenuLiteFinder;
+				PRODUCT_NAME = MagicMenu;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -402,7 +402,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder.FinderExtension;
 				PRODUCT_NAME = MagicMenuLiteFinderExtension;
 				SKIP_INSTALL = YES;
@@ -421,7 +421,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder.FinderExtension;
 				PRODUCT_NAME = MagicMenuLiteFinderExtension;
 				SKIP_INSTALL = YES;
