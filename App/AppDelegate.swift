@@ -71,21 +71,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let mainMenu = NSMenu()
         NSApp.mainMenu = mainMenu
 
-        let appMenuItem = NSMenuItem()
+        let appMenuItem = NSMenuItem(title: "MagicMenu", action: nil, keyEquivalent: "")
         mainMenu.addItem(appMenuItem)
 
-        let appMenu = NSMenu(title: "MagicMenu Lite")
+        let appMenu = NSMenu(title: "MagicMenu")
         appMenuItem.submenu = appMenu
 
         appMenu.addItem(
             NSMenuItem(
-                title: "退出 MagicMenu Lite",
+                title: "退出 MagicMenu",
                 action: #selector(NSApplication.terminate(_:)),
                 keyEquivalent: "q"
             )
         )
 
-        let fileMenuItem = NSMenuItem()
+        let fileMenuItem = NSMenuItem(title: "文件", action: nil, keyEquivalent: "")
         mainMenu.addItem(fileMenuItem)
 
         let fileMenu = NSMenu(title: "文件")
@@ -136,7 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let kind = NewFileKind(rawValue: kindValue),
             let directoryPath = query["directory"]
         else {
-            copyStatus("MagicMenu Lite：新建文件参数无效")
+            copyStatus("MagicMenu：新建文件参数无效")
             terminateSoon()
             return
         }
@@ -147,7 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try createAndReport(kind: kind, in: directory)
         } catch {
             shouldTerminateAfterHandling = false
-            reportFailure("MagicMenu Lite：新建文件失败\n\(directory.path)\n\(error.localizedDescription)")
+            reportFailure("MagicMenu：新建文件失败\n\(directory.path)\n\(error.localizedDescription)")
         }
 
         if shouldTerminateAfterHandling {
@@ -193,7 +193,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             } catch {
                 shouldTerminateAfterHandling = false
                 logDebug("host request failed: \(error.localizedDescription)")
-                reportFailure("MagicMenu Lite：处理菜单请求失败\n\(error.localizedDescription)")
+                reportFailure("MagicMenu：处理菜单请求失败\n\(error.localizedDescription)")
             }
         }
 
@@ -288,7 +288,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startFinderRenameIfAllowed() {
         guard accessibilityPermissionIsGranted() else {
-            let message = "MagicMenu Lite：需要辅助功能权限才能自动进入重命名状态。请在系统设置 > 隐私与安全性 > 辅助功能 中允许 MagicMenuLiteFinder。"
+            let message = "MagicMenu：需要辅助功能权限才能自动进入重命名状态。请在系统设置 > 隐私与安全性 > 辅助功能 中允许 MagicMenu。"
             logDebug(message)
             copyStatus(message)
             return
@@ -370,7 +370,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         DispatchQueue.main.async {
             let alert = NSAlert()
-            alert.messageText = "MagicMenu Lite"
+            alert.messageText = "MagicMenu"
             alert.informativeText = text
             alert.alertStyle = .warning
             NSApp.activate(ignoringOtherApps: true)

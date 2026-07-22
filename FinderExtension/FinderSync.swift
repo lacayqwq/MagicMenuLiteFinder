@@ -90,7 +90,7 @@ final class FinderSync: FIFinderSync {
     override func menu(for menuKind: FIMenuKind) -> NSMenu? {
         let context = MenuContext(menuKind: menuKind)
         currentMenuContext = context
-        let menu = NSMenu(title: "MagicMenu Lite")
+        let menu = NSMenu(title: "MagicMenu")
         let configuration = MenuConfigurationStore.load()
 
         for item in configuration.menuItems where item.enabled {
@@ -368,7 +368,7 @@ final class FinderSync: FIFinderSync {
             try writeRequest(action: action, kind: kind, directory: directory, paths: paths)
         } catch {
             logDebug("extension write \(action.rawValue) request failed: \(error.localizedDescription)")
-            copyStatus("MagicMenu Lite：无法发送请求\n\(error.localizedDescription)")
+            copyStatus("MagicMenu：无法发送请求\n\(error.localizedDescription)")
             return
         }
         logDebug("extension wrote request action=\(action.rawValue)")

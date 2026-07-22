@@ -22,7 +22,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "MagicMenu Lite"
+        window.title = "MagicMenu"
         window.minSize = NSSize(width: 680, height: 420)
         window.center()
         window.isReleasedWhenClosed = false
@@ -108,10 +108,11 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
 
         let iconView = NSImageView()
         iconView.image = NSImage(named: "MagicMenuLiteFinder") ?? NSApp.applicationIconImage
+        iconView.setAccessibilityLabel("MagicMenu 图标")
         iconView.imageScaling = .scaleProportionallyUpOrDown
         iconView.translatesAutoresizingMaskIntoConstraints = false
 
-        let titleLabel = NSTextField(labelWithString: "MagicMenu Lite 设置")
+        let titleLabel = NSTextField(labelWithString: "MagicMenu 设置")
         titleLabel.font = .systemFont(ofSize: 24, weight: .semibold)
         titleLabel.textColor = .labelColor
         titleLabel.translatesAutoresizingMaskIntoConstraints = false

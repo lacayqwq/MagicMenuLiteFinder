@@ -42,13 +42,13 @@ rm -rf "$ROOT_DIR/build"
 killall Finder >/dev/null 2>&1 || true
 
 cat <<DONE
-MagicMenu Lite Finder installed.
+MagicMenu installed.
 
 App:
   $INSTALLED_APP
 
 If the Finder menu does not appear:
   1. Open System Settings > Login Items & Extensions > Finder Extensions.
-  2. Enable MagicMenu Lite.
+  2. Enable MagicMenu.
   3. Relaunch Finder: killall Finder
 DONE

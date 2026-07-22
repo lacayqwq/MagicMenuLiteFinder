@@ -365,7 +365,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder;
 				PRODUCT_NAME = MagicMenuLiteFinder;
 				SWIFT_VERSION = 5.0;
@@ -384,7 +384,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder;
 				PRODUCT_NAME = MagicMenuLiteFinder;
 				SWIFT_VERSION = 5.0;
@@ -402,7 +402,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder.FinderExtension;
 				PRODUCT_NAME = MagicMenuLiteFinderExtension;
 				SKIP_INSTALL = YES;
@@ -421,7 +421,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FinderExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.codex.MagicMenuLiteFinder.FinderExtension;
 				PRODUCT_NAME = MagicMenuLiteFinderExtension;
 				SKIP_INSTALL = YES;

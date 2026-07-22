@@ -1,11 +1,11 @@
-# MagicMenu Lite Finder
+# MagicMenu
 
 <p align="center">
   <strong>简体中文</strong> · <a href="README_EN.md">English</a>
 </p>
 
 <p align="center">
-  <img src="App/Resources/MagicMenuLiteFinder-icon-preview.png" width="128" alt="MagicMenu Lite Finder 图标">
+  <img src="App/Resources/MagicMenuLiteFinder-icon-preview.png" width="128" alt="MagicMenu 图标">
 </p>
 
 为 Finder 右键菜单添加复制路径、用开发工具打开和新建文件等常用操作。
@@ -21,10 +21,10 @@
 
 支持 macOS 13 及以上系统，适用于 Apple Silicon 和 Intel Mac。
 
-1. 前往 [Releases](https://github.com/lacayqwq/MagicMenuLiteFinder/releases/latest)，下载 `MagicMenuLiteFinder-v1.1.0-macos.zip`。
+1. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenuLiteFinder-v1.1.1-macos.zip`。
 2. 解压后将 `MagicMenuLiteFinder.app` 移到“应用程序”文件夹。
 3. 首次启动时，右键 App 并选择“打开”。
-4. 前往“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu Lite`。
+4. 前往“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu`。
 
 > Release 版本已签名，但尚未经过 Apple 公证，因此首次启动需要使用右键“打开”。
 
@@ -32,12 +32,12 @@
 
 在 Finder 中右键文件、文件夹或空白处，选择需要的操作即可。
 
-打开 `/Applications/MagicMenuLiteFinder.app` 可调整功能开关和菜单顺序。新建文件时不会覆盖已有文件，同名时会自动生成 `Untitled 2.ext` 等名称。
+打开“应用程序”中的 `MagicMenu` 可调整功能开关和菜单顺序。新建文件时不会覆盖已有文件，同名时会自动生成 `Untitled 2.ext` 等名称。
 
 ## 权限与排障
 
 - **菜单未出现**：确认 Finder 扩展已启用，然后重新打开 Finder；仍未出现时运行 `killall Finder`。
-- **未自动进入重命名**：在“系统设置 > 隐私与安全性 > 辅助功能”中允许 `MagicMenuLiteFinder`。该权限仅用于自动重命名。
+- **未自动进入重命名**：在“系统设置 > 隐私与安全性 > 辅助功能”中允许 `MagicMenu`。该权限仅用于自动重命名。
 - **无法新建文件**：首次在桌面、文稿、下载或外接磁盘中使用时，请允许 macOS 弹出的文件夹访问请求。
 
 ## 从源码构建
@@ -45,8 +45,8 @@
 需要 Xcode。
 
 ```sh
-git clone https://github.com/lacayqwq/MagicMenuLiteFinder.git
-cd MagicMenuLiteFinder
+git clone https://github.com/lacayqwq/MagicMenu.git
+cd MagicMenu
 ./build-and-install.sh
 ```
 

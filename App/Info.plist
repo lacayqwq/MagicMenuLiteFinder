@@ -6,6 +6,8 @@
   <string>$(DEVELOPMENT_LANGUAGE)</string>
   <key>CFBundleExecutable</key>
   <string>$(EXECUTABLE_NAME)</string>
+  <key>CFBundleDisplayName</key>
+  <string>MagicMenu</string>
   <key>CFBundleIdentifier</key>
   <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
   <key>CFBundleIconFile</key>
@@ -13,7 +15,7 @@
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
-  <string>$(PRODUCT_NAME)</string>
+  <string>MagicMenu</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
@@ -22,7 +24,7 @@
   <array>
     <dict>
       <key>CFBundleURLName</key>
-      <string>MagicMenuLiteFinder URL</string>
+      <string>MagicMenu URL</string>
       <key>CFBundleURLSchemes</key>
       <array>
         <string>magicmenulitefinder</string>
@@ -38,20 +40,20 @@
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSAccessibilityUsageDescription</key>
-  <string>MagicMenu Lite 需要辅助功能权限，在新建文件后让 Finder 自动进入重命名状态。</string>
+  <string>MagicMenu 需要辅助功能权限，在新建文件后让 Finder 自动进入重命名状态。</string>
   <key>NSDesktopFolderUsageDescription</key>
-  <string>MagicMenu Lite 需要在你右键选择的桌面位置新建文件。</string>
+  <string>MagicMenu 需要在你右键选择的桌面位置新建文件。</string>
   <key>NSDocumentsFolderUsageDescription</key>
-  <string>MagicMenu Lite 需要在你右键选择的文稿位置新建文件。</string>
+  <string>MagicMenu 需要在你右键选择的文稿位置新建文件。</string>
   <key>NSDownloadsFolderUsageDescription</key>
-  <string>MagicMenu Lite 需要在你右键选择的下载位置新建文件。</string>
+  <string>MagicMenu 需要在你右键选择的下载位置新建文件。</string>
   <key>NSHumanReadableCopyright</key>
   <string>Copyright © 2026.</string>
   <key>NSNetworkVolumesUsageDescription</key>
-  <string>MagicMenu Lite 需要在你右键选择的网络磁盘位置新建文件。</string>
+  <string>MagicMenu 需要在你右键选择的网络磁盘位置新建文件。</string>
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
   <key>NSRemovableVolumesUsageDescription</key>
-  <string>MagicMenu Lite 需要在你右键选择的外接磁盘位置新建文件。</string>
+  <string>MagicMenu 需要在你右键选择的外接磁盘位置新建文件。</string>
 </dict>
 </plist>
