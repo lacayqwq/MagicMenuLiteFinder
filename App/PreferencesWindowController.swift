@@ -60,12 +60,12 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         stackView.addArrangedSubview(headerView())
         stackView.addArrangedSubview(cardView(
             title: "一级菜单",
-            subtitle: "控制 Finder 右键菜单中直接出现的功能；拖动左侧把手调整顺序。",
+            subtitle: "可修改别名、开关功能；拖动左侧把手调整顺序。",
             rowsStack: menuRowsStack
         ))
         stackView.addArrangedSubview(cardView(
             title: "新建文件",
-            subtitle: "控制“新建文件”子菜单中出现的文件类型；拖动左侧把手调整顺序。",
+            subtitle: "可修改子菜单别名、开关文件类型；拖动左侧把手调整顺序。",
             rowsStack: newFileRowsStack
         ))
         stackView.addArrangedSubview(footerView())
@@ -117,7 +117,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         titleLabel.textColor = .labelColor
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let subtitleLabel = NSTextField(labelWithString: "调整右键菜单的开关和顺序。修改会立即保存，使用时不需要打开这个窗口。")
+        let subtitleLabel = NSTextField(labelWithString: "调整右键菜单的名称、开关和顺序。修改会立即保存，使用时不需要打开这个窗口。")
         subtitleLabel.font = .systemFont(ofSize: 13)
         subtitleLabel.textColor = .secondaryLabelColor
         subtitleLabel.lineBreakMode = .byWordWrapping
@@ -299,6 +299,18 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         subtitleLabel.lineBreakMode = .byTruncatingTail
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        let aliasField = NSTextField(string: item.alias ?? "")
+        aliasField.placeholderString = "别名：\(title)"
+        aliasField.toolTip = "留空时使用“\(title)”"
+        aliasField.setAccessibilityLabel("\(title)的别名")
+        aliasField.font = .systemFont(ofSize: 12)
+        aliasField.target = self
+        aliasField.action = #selector(updateAlias(_:))
+        aliasField.cell?.sendsActionOnEndEditing = true
+        aliasField.tag = index
+        aliasField.identifier = NSUserInterfaceItemIdentifier(section.rawValue)
+        aliasField.translatesAutoresizingMaskIntoConstraints = false
+
         let toggle = NSSwitch()
         toggle.state = item.enabled ? .on : .off
         toggle.target = self
@@ -311,6 +323,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         row.addSubview(iconView)
         row.addSubview(titleLabel)
         row.addSubview(subtitleLabel)
+        row.addSubview(aliasField)
         row.addSubview(toggle)
         row.dragHandleView = dragHandleView
 
@@ -329,12 +342,16 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             iconView.heightAnchor.constraint(equalToConstant: 22),
 
             titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 13),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: toggle.leadingAnchor, constant: -18),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: aliasField.leadingAnchor, constant: -18),
             titleLabel.topAnchor.constraint(equalTo: row.topAnchor, constant: 9),
 
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: toggle.leadingAnchor, constant: -18),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: aliasField.leadingAnchor, constant: -18),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 3),
+
+            aliasField.trailingAnchor.constraint(equalTo: toggle.leadingAnchor, constant: -12),
+            aliasField.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            aliasField.widthAnchor.constraint(equalToConstant: 180),
 
             toggle.trailingAnchor.constraint(equalTo: row.trailingAnchor, constant: -18),
             toggle.centerYAnchor.constraint(equalTo: row.centerYAnchor)
@@ -388,6 +405,24 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             configuration.newFileItems[sender.tag].enabled = sender.state == .on
         case nil:
             return
+        }
+
+        saveAndRebuild()
+    }
+
+    @objc private func updateAlias(_ sender: NSTextField) {
+        guard let section = Section(rawValue: sender.identifier?.rawValue ?? "") else { return }
+        let alias = MenuConfiguration.normalizedAlias(sender.stringValue)
+
+        switch section {
+        case .menu:
+            guard configuration.menuItems.indices.contains(sender.tag) else { return }
+            guard configuration.menuItems[sender.tag].alias != alias else { return }
+            configuration.menuItems[sender.tag].alias = alias
+        case .newFile:
+            guard configuration.newFileItems.indices.contains(sender.tag) else { return }
+            guard configuration.newFileItems[sender.tag].alias != alias else { return }
+            configuration.newFileItems[sender.tag].alias = alias
         }
 
         saveAndRebuild()
@@ -667,6 +702,7 @@ private enum MenuCatalog {
 private struct MenuConfigItem: Codable {
     let id: String
     var enabled: Bool
+    var alias: String? = nil
 }
 
 private struct MenuConfiguration: Codable {
@@ -676,7 +712,7 @@ private struct MenuConfiguration: Codable {
 
     static var defaultConfiguration: MenuConfiguration {
         MenuConfiguration(
-            version: 1,
+            version: 2,
             menuItems: MenuCatalog.menuOrder.map { MenuConfigItem(id: $0, enabled: true) },
             newFileItems: MenuCatalog.newFileOrder.map { MenuConfigItem(id: $0, enabled: true) }
         )
@@ -684,7 +720,7 @@ private struct MenuConfiguration: Codable {
 
     func normalized() -> MenuConfiguration {
         MenuConfiguration(
-            version: 1,
+            version: 2,
             menuItems: Self.normalizedItems(menuItems, defaultOrder: MenuCatalog.menuOrder),
             newFileItems: Self.normalizedItems(newFileItems, defaultOrder: MenuCatalog.newFileOrder)
         )
@@ -695,7 +731,9 @@ private struct MenuConfiguration: Codable {
         var seen = Set<String>()
 
         for item in items where defaultOrder.contains(item.id) && !seen.contains(item.id) {
-            result.append(item)
+            var normalizedItem = item
+            normalizedItem.alias = Self.normalizedAlias(item.alias)
+            result.append(normalizedItem)
             seen.insert(item.id)
         }
 
@@ -704,6 +742,16 @@ private struct MenuConfiguration: Codable {
         }
 
         return result
+    }
+
+    static func normalizedAlias(_ alias: String?) -> String? {
+        guard let alias else { return nil }
+        let normalized = alias
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard !normalized.isEmpty else { return nil }
+        return String(normalized.prefix(80))
     }
 }
 

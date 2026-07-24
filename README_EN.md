@@ -15,14 +15,14 @@ Adds frequently used actions such as copying paths, opening developer tools, and
 - Copy file paths or file names
 - Open items with VS Code, Codex, Codex CLI, Claude Code, or iTerm2
 - Create TXT, Markdown, Python, Shell, HTML, JSON, and CSV files
-- Enable, disable, and reorder menu items
+- Rename every menu item, enable or disable features, and reorder items
 
 ## Installation
 
 Requires macOS 13 or later. Supports both Apple Silicon and Intel Macs.
 
 1. If an older version is installed, quit it and remove `MagicMenuLiteFinder.app` from Applications to prevent duplicate entries.
-2. Go to [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest) and download `MagicMenu-v1.2.0-macos.zip`.
+2. Go to [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest) and download `MagicMenu-v1.3.0-macos.zip`.
 3. Unzip the archive and move `MagicMenu.app` to the Applications folder.
 4. On first launch, right-click the app and choose **Open**.
 5. Go to **System Settings > General > Login Items & Extensions > Finder Extensions** and enable `MagicMenu`.
@@ -33,7 +33,7 @@ Requires macOS 13 or later. Supports both Apple Silicon and Intel Macs.
 
 Right-click a file, folder, or empty area in Finder and choose the action you need.
 
-Open `MagicMenu` from the Applications folder to enable, disable, or reorder menu items. Creating a file never overwrites an existing file; name conflicts produce names such as `Untitled 2.ext`.
+Open `MagicMenu` from the Applications folder to rename top-level and new-file menu items, enable or disable features, and reorder items. Leave an alias empty to use its built-in name. Creating a file never overwrites an existing file; name conflicts produce names such as `Untitled 2.ext`.
 
 ## Permissions and troubleshooting
 

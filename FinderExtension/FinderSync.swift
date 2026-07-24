@@ -100,52 +100,60 @@ final class FinderSync: FIFinderSync {
 
             switch id {
             case .copyPath:
-                let copyTitle = context.prefersContainer ? "复制当前目录路径" : "复制路径"
+                let defaultTitle = context.prefersContainer ? "复制当前目录路径" : "复制路径"
+                let copyTitle = item.displayTitle(default: defaultTitle)
                 let copyItem = NSMenuItem(title: copyTitle, action: #selector(copyPaths(_:)), keyEquivalent: "")
                 copyItem.target = self
                 menu.addItem(copyItem)
 
             case .copyName:
-                let copyTitle = context.prefersContainer ? "复制当前目录名" : "复制文件名"
+                let defaultTitle = context.prefersContainer ? "复制当前目录名" : "复制文件名"
+                let copyTitle = item.displayTitle(default: defaultTitle)
                 let copyItem = NSMenuItem(title: copyTitle, action: #selector(copyNames(_:)), keyEquivalent: "")
                 copyItem.target = self
                 menu.addItem(copyItem)
 
             case .openVSCode:
-                let codeItem = NSMenuItem(title: "用 VS Code 打开", action: #selector(openWithVSCode), keyEquivalent: "")
+                let codeItem = NSMenuItem(title: item.displayTitle(default: "用 VS Code 打开"), action: #selector(openWithVSCode), keyEquivalent: "")
                 codeItem.target = self
                 menu.addItem(codeItem)
 
             case .openCodex:
-                let codexItem = NSMenuItem(title: "用 Codex 打开", action: #selector(openWithCodex), keyEquivalent: "")
+                let codexItem = NSMenuItem(title: item.displayTitle(default: "用 Codex 打开"), action: #selector(openWithCodex), keyEquivalent: "")
                 codexItem.target = self
                 menu.addItem(codexItem)
 
             case .openCodexCLI:
-                let codexCLIItem = NSMenuItem(title: "用 Codex CLI 打开", action: #selector(openWithCodexCLI), keyEquivalent: "")
+                let codexCLIItem = NSMenuItem(title: item.displayTitle(default: "用 Codex CLI 打开"), action: #selector(openWithCodexCLI), keyEquivalent: "")
                 codexCLIItem.target = self
                 menu.addItem(codexCLIItem)
 
             case .openClaudeCode:
-                let claudeCodeItem = NSMenuItem(title: "用 CC 打开", action: #selector(openWithClaudeCode), keyEquivalent: "")
+                let claudeCodeItem = NSMenuItem(title: item.displayTitle(default: "用 CC 打开"), action: #selector(openWithClaudeCode), keyEquivalent: "")
                 claudeCodeItem.target = self
                 menu.addItem(claudeCodeItem)
 
             case .openITerm:
-                let iTermItem = NSMenuItem(title: "用 iTerm2 打开", action: #selector(openWithITerm2), keyEquivalent: "")
+                let iTermItem = NSMenuItem(title: item.displayTitle(default: "用 iTerm2 打开"), action: #selector(openWithITerm2), keyEquivalent: "")
                 iTermItem.target = self
                 menu.addItem(iTermItem)
 
             case .newFile:
-                let enabledKinds = configuration.newFileItems
+                let enabledItems = configuration.newFileItems
                     .filter(\.enabled)
-                    .compactMap { NewFileKind(rawValue: $0.id) }
+                    .compactMap { configItem -> (NewFileKind, MenuConfigItem)? in
+                        guard let kind = NewFileKind(rawValue: configItem.id) else { return nil }
+                        return (kind, configItem)
+                    }
 
-                guard !enabledKinds.isEmpty else { continue }
+                guard !enabledItems.isEmpty else { continue }
 
-                let newFileItem = NSMenuItem(title: "新建文件", action: nil, keyEquivalent: "")
-                let newFileMenu = NSMenu(title: "新建文件")
-                enabledKinds.forEach { newFileMenu.addItem(newFileMenuItem(kind: $0)) }
+                let menuTitle = item.displayTitle(default: "新建文件")
+                let newFileItem = NSMenuItem(title: menuTitle, action: nil, keyEquivalent: "")
+                let newFileMenu = NSMenu(title: menuTitle)
+                for (kind, configItem) in enabledItems {
+                    newFileMenu.addItem(newFileMenuItem(kind: kind, title: configItem.displayTitle(default: kind.menuTitle)))
+                }
                 menu.setSubmenu(newFileMenu, for: newFileItem)
                 menu.addItem(newFileItem)
             }
@@ -154,8 +162,8 @@ final class FinderSync: FIFinderSync {
         return menu.items.isEmpty ? nil : menu
     }
 
-    private func newFileMenuItem(kind: NewFileKind) -> NSMenuItem {
-        let item = NSMenuItem(title: kind.menuTitle, action: selector(for: kind), keyEquivalent: "")
+    private func newFileMenuItem(kind: NewFileKind, title: String) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: selector(for: kind), keyEquivalent: "")
         item.target = self
         return item
     }
@@ -453,6 +461,11 @@ final class FinderSync: FIFinderSync {
 private struct MenuConfigItem: Codable {
     let id: String
     var enabled: Bool
+    var alias: String? = nil
+
+    func displayTitle(default defaultTitle: String) -> String {
+        alias ?? defaultTitle
+    }
 }
 
 private struct MenuConfiguration: Codable {
@@ -462,7 +475,7 @@ private struct MenuConfiguration: Codable {
 
     static var defaultConfiguration: MenuConfiguration {
         MenuConfiguration(
-            version: 1,
+            version: 2,
             menuItems: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"].map { MenuConfigItem(id: $0, enabled: true) },
             newFileItems: ["txt", "markdown", "python", "shell", "html", "json", "csv"].map { MenuConfigItem(id: $0, enabled: true) }
         )
@@ -470,7 +483,7 @@ private struct MenuConfiguration: Codable {
 
     func normalized() -> MenuConfiguration {
         MenuConfiguration(
-            version: 1,
+            version: 2,
             menuItems: Self.normalizedItems(menuItems, defaultOrder: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"]),
             newFileItems: Self.normalizedItems(newFileItems, defaultOrder: ["txt", "markdown", "python", "shell", "html", "json", "csv"])
         )
@@ -481,7 +494,9 @@ private struct MenuConfiguration: Codable {
         var seen = Set<String>()
 
         for item in items where defaultOrder.contains(item.id) && !seen.contains(item.id) {
-            result.append(item)
+            var normalizedItem = item
+            normalizedItem.alias = Self.normalizedAlias(item.alias)
+            result.append(normalizedItem)
             seen.insert(item.id)
         }
 
@@ -490,6 +505,16 @@ private struct MenuConfiguration: Codable {
         }
 
         return result
+    }
+
+    private static func normalizedAlias(_ alias: String?) -> String? {
+        guard let alias else { return nil }
+        let normalized = alias
+            .components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard !normalized.isEmpty else { return nil }
+        return String(normalized.prefix(80))
     }
 }
 

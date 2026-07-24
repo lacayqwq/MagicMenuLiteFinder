@@ -15,14 +15,14 @@
 - 复制文件路径或文件名
 - 用 VS Code、Codex、Codex CLI、Claude Code 或 iTerm2 打开
 - 新建 TXT、Markdown、Python、Shell、HTML、JSON 和 CSV 文件
-- 自由开关功能并拖动调整菜单顺序
+- 自定义所有菜单项名称，自由开关功能并拖动调整顺序
 
 ## 安装
 
 支持 macOS 13 及以上系统，适用于 Apple Silicon 和 Intel Mac。
 
 1. 如果安装过旧版，请先退出并删除“应用程序”中的 `MagicMenuLiteFinder.app`，避免系统保留重复项。
-2. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenu-v1.2.0-macos.zip`。
+2. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenu-v1.3.0-macos.zip`。
 3. 解压后将 `MagicMenu.app` 移到“应用程序”文件夹。
 4. 首次启动时，右键 App 并选择“打开”。
 5. 前往“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu`。
@@ -33,7 +33,7 @@
 
 在 Finder 中右键文件、文件夹或空白处，选择需要的操作即可。
 
-打开“应用程序”中的 `MagicMenu` 可调整功能开关和菜单顺序。新建文件时不会覆盖已有文件，同名时会自动生成 `Untitled 2.ext` 等名称。
+打开“应用程序”中的 `MagicMenu` 可修改一级菜单和新建文件项目的别名，并调整功能开关和顺序。别名留空时恢复内置名称。新建文件时不会覆盖已有文件，同名时会自动生成 `Untitled 2.ext` 等名称。
 
 ## 权限与排障
 
