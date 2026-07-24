@@ -18,6 +18,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case openITerm
     }
 
+    private enum TerminalPreference: String, Decodable {
+        case automatic
+        case iTerm2
+        case terminal
+    }
+
+    private enum TerminalBackend {
+        case iTerm2(URL)
+        case terminal
+
+        var displayName: String {
+            switch self {
+            case .iTerm2:
+                return "iTerm2"
+            case .terminal:
+                return "终端"
+            }
+        }
+    }
+
+    private struct RuntimeConfiguration: Decodable {
+        let terminalPreference: TerminalPreference?
+    }
+
     private var handledURLLaunch = false
     private var preferencesWindowController: PreferencesWindowController?
 
@@ -265,17 +289,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         case .openITerm:
             guard let directoryPath = request.directory else {
-                throw userFacingError("iTerm2 打开目录为空")
+                throw userFacingError("终端打开目录为空")
             }
 
             let directory = URL(fileURLWithPath: directoryPath, isDirectory: true)
-            try open(
-                urls: [directory],
-                bundleIdentifiers: ["com.googlecode.iterm2"],
-                applicationNames: ["iTerm", "iTerm2"],
-                appName: "iTerm2"
-            )
-            logDebug("host opened iTerm2 directory=\(directory.path)")
+            let backend = try openDirectoryInConfiguredTerminal(directory)
+            logDebug("host opened terminal=\(backend.displayName) directory=\(directory.path)")
         }
     }
 
@@ -442,14 +461,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func openCodexCLIWorkspaces(_ urls: [URL]) throws {
         let codexExecutable = try codexExecutableURL()
         for url in urls {
-            try runCLIInITerm(directory: url, executable: codexExecutable, cliName: "Codex CLI")
+            try runCLIInConfiguredTerminal(directory: url, executable: codexExecutable, cliName: "Codex CLI")
         }
     }
 
     private func openClaudeCodeWorkspaces(_ urls: [URL]) throws {
         let claudeExecutable = try claudeExecutableURL()
         for url in urls {
-            try runCLIInITerm(directory: url, executable: claudeExecutable, cliName: "Claude Code")
+            try runCLIInConfiguredTerminal(directory: url, executable: claudeExecutable, cliName: "Claude Code")
         }
     }
 
@@ -474,39 +493,102 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func runCLIInITerm(directory: URL, executable: URL, cliName: String) throws {
+    private func runCLIInConfiguredTerminal(directory: URL, executable: URL, cliName: String) throws {
         let command = [
             "export PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH",
             "cd \(shellQuoted(directory.path))",
             shellQuoted(executable.path)
         ].joined(separator: " && ")
 
-        let iTermApplications = iTermApplicationURLs()
-        guard !iTermApplications.isEmpty else {
-            throw userFacingError("无法找到 iTerm2。请确认 iTerm2 已安装在 /Applications。")
-        }
+        let backend = selectedTerminalBackend()
+        switch backend {
+        case .terminal:
+            try runCommandInTerminal(command, cliName: cliName)
+            logDebug("host launched \(cliName) terminal=终端 directory=\(directory.path)")
 
-        var errors: [String] = []
-        for applicationURL in iTermApplications {
-            let script = """
-            tell application \(appleScriptStringLiteral(applicationURL.path))
-                activate
-                set newWindow to (create window with default profile)
-                tell current session of newWindow
-                    write text \(appleScriptStringLiteral(command))
-                end tell
-            end tell
-            """
-
+        case .iTerm2(let applicationURL):
             do {
-                try runAppleScript(script, failureMessage: "\(applicationURL.lastPathComponent) AppleScript 执行失败")
-                return
+                try runCommandInITerm(command, applicationURL: applicationURL, cliName: cliName)
+                logDebug("host launched \(cliName) terminal=iTerm2 directory=\(directory.path)")
             } catch {
-                errors.append("\(applicationURL.lastPathComponent): \(error.localizedDescription)")
+                logDebug("host iTerm2 failed for \(cliName), falling back to Terminal: \(error.localizedDescription)")
+                try runCommandInTerminal(command, cliName: cliName)
+                logDebug("host launched \(cliName) terminal=终端 fallback=true directory=\(directory.path)")
             }
         }
+    }
 
-        throw userFacingError("无法用 iTerm2 打开 \(cliName)。请确认已经安装 iTerm2。\n\(errors.joined(separator: "\n"))")
+    private func openDirectoryInConfiguredTerminal(_ directory: URL) throws -> TerminalBackend {
+        let backend = selectedTerminalBackend()
+        switch backend {
+        case .terminal:
+            try runOpen(arguments: ["-b", "com.apple.Terminal", directory.path])
+            return .terminal
+
+        case .iTerm2:
+            do {
+                try runOpen(arguments: ["-b", "com.googlecode.iterm2", directory.path])
+                return backend
+            } catch {
+                logDebug("host iTerm2 failed to open directory, falling back to Terminal: \(error.localizedDescription)")
+                try runOpen(arguments: ["-b", "com.apple.Terminal", directory.path])
+                return .terminal
+            }
+        }
+    }
+
+    private func selectedTerminalBackend() -> TerminalBackend {
+        let iTermApplication = iTermApplicationURLs().first
+        switch terminalPreference() {
+        case .automatic:
+            if let iTermApplication {
+                return .iTerm2(iTermApplication)
+            }
+            return .terminal
+        case .iTerm2:
+            if let iTermApplication {
+                return .iTerm2(iTermApplication)
+            }
+            logDebug("host configured terminal=iTerm2 but it is unavailable, falling back to Terminal")
+            return .terminal
+        case .terminal:
+            return .terminal
+        }
+    }
+
+    private func terminalPreference() -> TerminalPreference {
+        guard
+            let data = try? Data(contentsOf: extensionConfigurationURL()),
+            let configuration = try? JSONDecoder().decode(RuntimeConfiguration.self, from: data)
+        else {
+            return .automatic
+        }
+        return configuration.terminalPreference ?? .automatic
+    }
+
+    private func runCommandInITerm(_ command: String, applicationURL: URL, cliName: String) throws {
+        let script = """
+        tell application \(appleScriptStringLiteral(applicationURL.path))
+            activate
+            set newWindow to (create window with default profile)
+            tell current session of newWindow
+                write text \(appleScriptStringLiteral(command))
+            end tell
+        end tell
+        """
+
+        try runAppleScript(script, failureMessage: "无法用 iTerm2 打开 \(cliName)")
+    }
+
+    private func runCommandInTerminal(_ command: String, cliName: String) throws {
+        let script = """
+        tell application id "com.apple.Terminal"
+            activate
+            do script \(appleScriptStringLiteral(command))
+        end tell
+        """
+
+        try runAppleScript(script, failureMessage: "无法用 macOS 终端打开 \(cliName)")
     }
 
     private func iTermApplicationURLs() -> [URL] {
@@ -605,6 +687,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func extensionRequestDirectoryURL() -> URL {
+        extensionConfigurationURL()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Requests", isDirectory: true)
+    }
+
+    private func extensionConfigurationURL() -> URL {
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Containers", isDirectory: true)
@@ -613,7 +701,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Application Support", isDirectory: true)
             .appendingPathComponent("MagicMenuLiteFinder", isDirectory: true)
-            .appendingPathComponent("Requests", isDirectory: true)
+            .appendingPathComponent("MenuConfig.json")
     }
 
     private func hostSupportDirectoryURL() -> URL {

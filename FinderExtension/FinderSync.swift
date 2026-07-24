@@ -134,7 +134,7 @@ final class FinderSync: FIFinderSync {
                 menu.addItem(claudeCodeItem)
 
             case .openITerm:
-                let iTermItem = NSMenuItem(title: item.displayTitle(default: "用 iTerm2 打开"), action: #selector(openWithITerm2), keyEquivalent: "")
+                let iTermItem = NSMenuItem(title: item.displayTitle(default: "用终端打开"), action: #selector(openWithITerm2), keyEquivalent: "")
                 iTermItem.target = self
                 menu.addItem(iTermItem)
 
@@ -475,7 +475,7 @@ private struct MenuConfiguration: Codable {
 
     static var defaultConfiguration: MenuConfiguration {
         MenuConfiguration(
-            version: 2,
+            version: 3,
             menuItems: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"].map { MenuConfigItem(id: $0, enabled: true) },
             newFileItems: ["txt", "markdown", "python", "shell", "html", "json", "csv"].map { MenuConfigItem(id: $0, enabled: true) }
         )
@@ -483,7 +483,7 @@ private struct MenuConfiguration: Codable {
 
     func normalized() -> MenuConfiguration {
         MenuConfiguration(
-            version: 2,
+            version: 3,
             menuItems: Self.normalizedItems(menuItems, defaultOrder: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"]),
             newFileItems: Self.normalizedItems(newFileItems, defaultOrder: ["txt", "markdown", "python", "shell", "html", "json", "csv"])
         )

@@ -11,6 +11,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     private let stackView = NSStackView()
     private let menuRowsStack = SortableRowsStackView()
     private let newFileRowsStack = SortableRowsStackView()
+    private let terminalPopupButton = NSPopUpButton()
     private var configuration = MenuConfigurationStore.load()
 
     init() {
@@ -58,6 +59,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         contentView.addSubview(stackView)
 
         stackView.addArrangedSubview(headerView())
+        stackView.addArrangedSubview(terminalSettingsView())
         stackView.addArrangedSubview(cardView(
             title: "一级菜单",
             subtitle: "可修改别名、开关功能；拖动左侧把手调整顺序。",
@@ -148,6 +150,65 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         return container
     }
 
+    private func terminalSettingsView() -> NSView {
+        let card = RoundedPanelView()
+        card.translatesAutoresizingMaskIntoConstraints = false
+
+        let iconView = NSImageView()
+        iconView.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: "终端")
+        iconView.contentTintColor = .secondaryLabelColor
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+
+        let titleLabel = NSTextField(labelWithString: "终端")
+        titleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        let subtitleLabel = NSTextField(labelWithString: "用于 Codex CLI、Claude Code 和“用终端打开”。自动模式优先 iTerm2，不可用时使用 macOS 终端。")
+        subtitleLabel.font = .systemFont(ofSize: 12)
+        subtitleLabel.textColor = .secondaryLabelColor
+        subtitleLabel.lineBreakMode = .byTruncatingTail
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        terminalPopupButton.addItems(withTitles: TerminalPreference.allCases.map(\.displayName))
+        for (item, preference) in zip(terminalPopupButton.itemArray, TerminalPreference.allCases) {
+            item.representedObject = preference.rawValue
+        }
+        terminalPopupButton.target = self
+        terminalPopupButton.action = #selector(updateTerminalPreference(_:))
+        terminalPopupButton.setAccessibilityLabel("使用的终端")
+        terminalPopupButton.translatesAutoresizingMaskIntoConstraints = false
+
+        card.addSubview(iconView)
+        card.addSubview(titleLabel)
+        card.addSubview(subtitleLabel)
+        card.addSubview(terminalPopupButton)
+
+        NSLayoutConstraint.activate([
+            card.widthAnchor.constraint(greaterThanOrEqualToConstant: 600),
+            card.heightAnchor.constraint(equalToConstant: 76),
+
+            iconView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 18),
+            iconView.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 24),
+            iconView.heightAnchor.constraint(equalToConstant: 24),
+
+            titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 13),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: terminalPopupButton.leadingAnchor, constant: -18),
+            titleLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 15),
+
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: terminalPopupButton.leadingAnchor, constant: -18),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+
+            terminalPopupButton.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -18),
+            terminalPopupButton.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            terminalPopupButton.widthAnchor.constraint(equalToConstant: 190)
+        ])
+
+        refreshTerminalPopup()
+        return card
+    }
+
     private func cardView(title: String, subtitle: String, rowsStack: NSStackView) -> NSView {
         let card = RoundedPanelView()
         card.translatesAutoresizingMaskIntoConstraints = false
@@ -223,6 +284,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func rebuildRows() {
+        refreshTerminalPopup()
         rebuildRows(
             in: menuRowsStack,
             section: .menu,
@@ -237,6 +299,13 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             titles: MenuCatalog.newFileTitles,
             subtitles: MenuCatalog.newFileSubtitles
         )
+    }
+
+    private func refreshTerminalPopup() {
+        let rawValue = configuration.resolvedTerminalPreference.rawValue
+        if let item = terminalPopupButton.itemArray.first(where: { ($0.representedObject as? String) == rawValue }) {
+            terminalPopupButton.select(item)
+        }
     }
 
     private func rebuildRows(
@@ -425,6 +494,19 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             configuration.newFileItems[sender.tag].alias = alias
         }
 
+        saveAndRebuild()
+    }
+
+    @objc private func updateTerminalPreference(_ sender: NSPopUpButton) {
+        guard
+            let rawValue = sender.selectedItem?.representedObject as? String,
+            let preference = TerminalPreference(rawValue: rawValue),
+            configuration.resolvedTerminalPreference != preference
+        else {
+            return
+        }
+
+        configuration.terminalPreference = preference
         saveAndRebuild()
     }
 
@@ -652,6 +734,23 @@ private final class RoundedPanelView: NSView {
     }
 }
 
+private enum TerminalPreference: String, Codable, CaseIterable {
+    case automatic
+    case iTerm2
+    case terminal
+
+    var displayName: String {
+        switch self {
+        case .automatic:
+            return "自动（优先 iTerm2）"
+        case .iTerm2:
+            return "iTerm2"
+        case .terminal:
+            return "终端（macOS）"
+        }
+    }
+}
+
 private enum MenuCatalog {
     static let menuOrder = ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"]
     static let newFileOrder = ["txt", "markdown", "python", "shell", "html", "json", "csv"]
@@ -663,7 +762,7 @@ private enum MenuCatalog {
         "openCodex": "用 Codex 打开",
         "openCodexCLI": "用 Codex CLI 打开",
         "openClaudeCode": "用 CC 打开",
-        "openITerm": "用 iTerm2 打开",
+        "openITerm": "用终端打开",
         "newFile": "新建文件"
     ]
 
@@ -672,9 +771,9 @@ private enum MenuCatalog {
         "copyName": "复制选中项目名称；空白处复制当前目录名。",
         "openVSCode": "用 VS Code 打开选中项目或当前文件夹。",
         "openCodex": "用 Codex 打开当前目录；选中文件时打开其所在目录。",
-        "openCodexCLI": "在 iTerm2 中进入对应目录并启动 Codex CLI。",
-        "openClaudeCode": "在 iTerm2 中进入对应目录并启动 Claude Code。",
-        "openITerm": "在 iTerm2 中打开对应目录。",
+        "openCodexCLI": "在所选终端中进入对应目录并启动 Codex CLI。",
+        "openClaudeCode": "在所选终端中进入对应目录并启动 Claude Code。",
+        "openITerm": "使用所选终端打开对应目录。",
         "newFile": "显示可配置的新建文件类型子菜单。"
     ]
 
@@ -709,20 +808,27 @@ private struct MenuConfiguration: Codable {
     var version: Int
     var menuItems: [MenuConfigItem]
     var newFileItems: [MenuConfigItem]
+    var terminalPreference: TerminalPreference? = nil
+
+    var resolvedTerminalPreference: TerminalPreference {
+        terminalPreference ?? .automatic
+    }
 
     static var defaultConfiguration: MenuConfiguration {
         MenuConfiguration(
-            version: 2,
+            version: 3,
             menuItems: MenuCatalog.menuOrder.map { MenuConfigItem(id: $0, enabled: true) },
-            newFileItems: MenuCatalog.newFileOrder.map { MenuConfigItem(id: $0, enabled: true) }
+            newFileItems: MenuCatalog.newFileOrder.map { MenuConfigItem(id: $0, enabled: true) },
+            terminalPreference: .automatic
         )
     }
 
     func normalized() -> MenuConfiguration {
         MenuConfiguration(
-            version: 2,
+            version: 3,
             menuItems: Self.normalizedItems(menuItems, defaultOrder: MenuCatalog.menuOrder),
-            newFileItems: Self.normalizedItems(newFileItems, defaultOrder: MenuCatalog.newFileOrder)
+            newFileItems: Self.normalizedItems(newFileItems, defaultOrder: MenuCatalog.newFileOrder),
+            terminalPreference: resolvedTerminalPreference
         )
     }
 
