@@ -13,7 +13,7 @@
 ## 功能
 
 - 复制文件路径或文件名
-- 用 VS Code、Codex、Codex CLI 或 iTerm2 打开
+- 用 VS Code、Codex、Codex CLI、Claude Code 或 iTerm2 打开
 - 新建 TXT、Markdown、Python、Shell、HTML、JSON 和 CSV 文件
 - 自由开关功能并拖动调整菜单顺序
 
@@ -22,7 +22,7 @@
 支持 macOS 13 及以上系统，适用于 Apple Silicon 和 Intel Mac。
 
 1. 如果安装过旧版，请先退出并删除“应用程序”中的 `MagicMenuLiteFinder.app`，避免系统保留重复项。
-2. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenu-v1.1.2-macos.zip`。
+2. 前往 [Releases](https://github.com/lacayqwq/MagicMenu/releases/latest)，下载 `MagicMenu-v1.2.0-macos.zip`。
 3. 解压后将 `MagicMenu.app` 移到“应用程序”文件夹。
 4. 首次启动时，右键 App 并选择“打开”。
 5. 前往“系统设置 > 通用 > 登录项与扩展 > Finder 扩展”，启用 `MagicMenu`。
@@ -38,6 +38,7 @@
 ## 权限与排障
 
 - **菜单未出现**：确认 Finder 扩展已启用，然后重新打开 Finder；仍未出现时运行 `killall Finder`。
+- **“用 CC 打开”无响应**：确认已安装 iTerm2 和 Claude Code，并能在终端中运行 `claude --version`。
 - **未自动进入重命名**：在“系统设置 > 隐私与安全性 > 辅助功能”中允许 `MagicMenu`。该权限仅用于自动重命名。
 - **无法新建文件**：首次在桌面、文稿、下载或外接磁盘中使用时，请允许 macOS 弹出的文件夹访问请求。
 

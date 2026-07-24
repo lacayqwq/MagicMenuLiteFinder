@@ -362,6 +362,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         case "openVSCode": symbolName = "chevron.left.forwardslash.chevron.right"
         case "openCodex": symbolName = "sparkles"
         case "openCodexCLI": symbolName = "terminal.fill"
+        case "openClaudeCode": symbolName = "terminal.fill"
         case "openITerm": symbolName = "terminal"
         case "newFile": symbolName = "doc.badge.plus"
         case "txt": symbolName = "doc.text"
@@ -617,7 +618,7 @@ private final class RoundedPanelView: NSView {
 }
 
 private enum MenuCatalog {
-    static let menuOrder = ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openITerm", "newFile"]
+    static let menuOrder = ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"]
     static let newFileOrder = ["txt", "markdown", "python", "shell", "html", "json", "csv"]
 
     static let menuTitles = [
@@ -626,6 +627,7 @@ private enum MenuCatalog {
         "openVSCode": "用 VS Code 打开",
         "openCodex": "用 Codex 打开",
         "openCodexCLI": "用 Codex CLI 打开",
+        "openClaudeCode": "用 CC 打开",
         "openITerm": "用 iTerm2 打开",
         "newFile": "新建文件"
     ]
@@ -636,6 +638,7 @@ private enum MenuCatalog {
         "openVSCode": "用 VS Code 打开选中项目或当前文件夹。",
         "openCodex": "用 Codex 打开当前目录；选中文件时打开其所在目录。",
         "openCodexCLI": "在 iTerm2 中进入对应目录并启动 Codex CLI。",
+        "openClaudeCode": "在 iTerm2 中进入对应目录并启动 Claude Code。",
         "openITerm": "在 iTerm2 中打开对应目录。",
         "newFile": "显示可配置的新建文件类型子菜单。"
     ]

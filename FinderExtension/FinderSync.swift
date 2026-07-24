@@ -16,6 +16,7 @@ final class FinderSync: FIFinderSync {
         case openVSCode
         case openCodex
         case openCodexCLI
+        case openClaudeCode
         case openITerm
     }
 
@@ -73,6 +74,7 @@ final class FinderSync: FIFinderSync {
         case openVSCode
         case openCodex
         case openCodexCLI
+        case openClaudeCode
         case openITerm
         case newFile
     }
@@ -123,6 +125,11 @@ final class FinderSync: FIFinderSync {
                 let codexCLIItem = NSMenuItem(title: "用 Codex CLI 打开", action: #selector(openWithCodexCLI), keyEquivalent: "")
                 codexCLIItem.target = self
                 menu.addItem(codexCLIItem)
+
+            case .openClaudeCode:
+                let claudeCodeItem = NSMenuItem(title: "用 CC 打开", action: #selector(openWithClaudeCode), keyEquivalent: "")
+                claudeCodeItem.target = self
+                menu.addItem(claudeCodeItem)
 
             case .openITerm:
                 let iTermItem = NSMenuItem(title: "用 iTerm2 打开", action: #selector(openWithITerm2), keyEquivalent: "")
@@ -224,6 +231,17 @@ final class FinderSync: FIFinderSync {
 
         logDebug("extension openWithCodexCLI paths=\(urls.map(\.path).joined(separator: "|"))")
         requestHostAction(.openCodexCLI, paths: urls)
+    }
+
+    @objc private func openWithClaudeCode() {
+        let urls = pathsToOpenInCodex(for: currentMenuContext)
+        guard !urls.isEmpty else {
+            logDebug("extension openWithClaudeCode missing paths")
+            return
+        }
+
+        logDebug("extension openWithClaudeCode paths=\(urls.map(\.path).joined(separator: "|"))")
+        requestHostAction(.openClaudeCode, paths: urls)
     }
 
     @objc private func openWithITerm2() {
@@ -445,7 +463,7 @@ private struct MenuConfiguration: Codable {
     static var defaultConfiguration: MenuConfiguration {
         MenuConfiguration(
             version: 1,
-            menuItems: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openITerm", "newFile"].map { MenuConfigItem(id: $0, enabled: true) },
+            menuItems: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"].map { MenuConfigItem(id: $0, enabled: true) },
             newFileItems: ["txt", "markdown", "python", "shell", "html", "json", "csv"].map { MenuConfigItem(id: $0, enabled: true) }
         )
     }
@@ -453,7 +471,7 @@ private struct MenuConfiguration: Codable {
     func normalized() -> MenuConfiguration {
         MenuConfiguration(
             version: 1,
-            menuItems: Self.normalizedItems(menuItems, defaultOrder: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openITerm", "newFile"]),
+            menuItems: Self.normalizedItems(menuItems, defaultOrder: ["copyPath", "copyName", "openVSCode", "openCodex", "openCodexCLI", "openClaudeCode", "openITerm", "newFile"]),
             newFileItems: Self.normalizedItems(newFileItems, defaultOrder: ["txt", "markdown", "python", "shell", "html", "json", "csv"])
         )
     }

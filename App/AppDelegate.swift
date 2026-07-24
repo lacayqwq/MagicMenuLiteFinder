@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case openVSCode
         case openCodex
         case openCodexCLI
+        case openClaudeCode
         case openITerm
     }
 
@@ -253,6 +254,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try openCodexCLIWorkspaces(urls)
             logDebug("host opened Codex CLI paths=\(urls.map(\.path).joined(separator: "|"))")
 
+        case .openClaudeCode:
+            let urls = (request.paths ?? []).map { URL(fileURLWithPath: $0, isDirectory: true) }
+            guard !urls.isEmpty else {
+                throw userFacingError("Claude Code 打开路径为空")
+            }
+
+            try openClaudeCodeWorkspaces(urls)
+            logDebug("host opened Claude Code paths=\(urls.map(\.path).joined(separator: "|"))")
+
         case .openITerm:
             guard let directoryPath = request.directory else {
                 throw userFacingError("iTerm2 打开目录为空")
@@ -432,7 +442,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func openCodexCLIWorkspaces(_ urls: [URL]) throws {
         let codexExecutable = try codexExecutableURL()
         for url in urls {
-            try runCodexCLIInITerm(directory: url, codexExecutable: codexExecutable)
+            try runCLIInITerm(directory: url, executable: codexExecutable, cliName: "Codex CLI")
+        }
+    }
+
+    private func openClaudeCodeWorkspaces(_ urls: [URL]) throws {
+        let claudeExecutable = try claudeExecutableURL()
+        for url in urls {
+            try runCLIInITerm(directory: url, executable: claudeExecutable, cliName: "Claude Code")
         }
     }
 
@@ -457,11 +474,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func runCodexCLIInITerm(directory: URL, codexExecutable: URL) throws {
+    private func runCLIInITerm(directory: URL, executable: URL, cliName: String) throws {
         let command = [
             "export PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH",
             "cd \(shellQuoted(directory.path))",
-            shellQuoted(codexExecutable.path)
+            shellQuoted(executable.path)
         ].joined(separator: " && ")
 
         let iTermApplications = iTermApplicationURLs()
@@ -489,7 +506,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        throw userFacingError("无法用 iTerm2 打开 Codex CLI。请确认已经安装 iTerm2。\n\(errors.joined(separator: "\n"))")
+        throw userFacingError("无法用 iTerm2 打开 \(cliName)。请确认已经安装 iTerm2。\n\(errors.joined(separator: "\n"))")
     }
 
     private func iTermApplicationURLs() -> [URL] {
@@ -533,6 +550,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         throw userFacingError("无法找到 Codex CLI。请确认 `codex` 已安装在 /opt/homebrew/bin 或 /usr/local/bin。")
+    }
+
+    private func claudeExecutableURL() throws -> URL {
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
+        let candidates = [
+            "/opt/homebrew/bin/claude",
+            "/usr/local/bin/claude",
+            "/usr/bin/claude",
+            homeDirectory.appendingPathComponent(".local/bin/claude").path,
+            homeDirectory.appendingPathComponent(".claude/local/claude").path
+        ]
+
+        for path in candidates where FileManager.default.isExecutableFile(atPath: path) {
+            return URL(fileURLWithPath: path)
+        }
+
+        throw userFacingError("无法找到 Claude Code。请确认 `claude` 已安装在 /opt/homebrew/bin、/usr/local/bin 或 ~/.local/bin。")
     }
 
     private func shellQuoted(_ text: String) -> String {
